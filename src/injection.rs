@@ -4,6 +4,7 @@ use std::ffi::CString;
 use std::ptr::null_mut;
 use winapi::shared::minwindef::DWORD;
 use winapi::shared::winerror::WAIT_TIMEOUT;
+use winapi::um::errhandlingapi::GetLastError;
 use winapi::um::handleapi::CloseHandle;
 use winapi::um::libloaderapi::GetModuleHandleA;
 use winapi::um::memoryapi::VirtualAllocEx;
@@ -12,7 +13,7 @@ use winapi::um::synchapi::WaitForSingleObject;
 use winapi::um::winbase::INFINITE;
 use winapi::um::winnt::{HANDLE, MEM_COMMIT, PAGE_READWRITE, PROCESS_ALL_ACCESS};
 
-pub unsafe fn open_process(pid: DWORD) -> Result<HANDLE, String> {
+pub(crate) unsafe fn open_process(pid: DWORD) -> Result<HANDLE, String> {
     let process = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
     if process.is_null() {
         Err("Failed to open the target process.".to_string())
@@ -21,7 +22,7 @@ pub unsafe fn open_process(pid: DWORD) -> Result<HANDLE, String> {
     }
 }
 
-pub unsafe fn alloc_memory<T: Sized>(
+unsafe fn alloc_memory<T: Sized>(
     process: HANDLE,
     data: &[T],
 ) -> Result<*mut winapi::ctypes::c_void, String> {
@@ -40,12 +41,15 @@ pub unsafe fn alloc_memory<T: Sized>(
         null_mut(),
     ) == 0
     {
-        return Err("Failed to write into the target process memory.".to_string());
+        return Err(format!(
+            "Failed to write into the target process memory. Error code {}",
+            GetLastError()
+        ));
     }
     Ok(addr)
 }
 
-pub unsafe fn inject_dll(process: HANDLE, dll_path: &str) -> Result<HANDLE, String> {
+pub(crate) unsafe fn inject_dll(process: HANDLE, dll_path: &str) -> Result<HANDLE, String> {
     // let dll_path_cstring = CString::new(dll_path.to_string()).expect("CString::new failed");
     let to_utf_16 = |s: &str| s.encode_utf16().chain([0]).collect::<Vec<u16>>();
     let dll_path_wstr = to_utf_16(dll_path);

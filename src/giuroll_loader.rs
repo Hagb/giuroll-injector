@@ -91,13 +91,13 @@ unsafe fn load_by_swrstoys() {
         std::ptr::null_mut(),
         CString::new("Error").unwrap().as_ptr(),
         CString::new(
-            "giuroll_loader.dll should not be loaded by SWRSToys. Load giuroll.dll instead.",
+            "giuroll_loader_dll.dll should not be loaded by SWRSToys. Load giuroll.dll instead.",
         )
         .unwrap()
         .as_ptr(),
         MB_ICONERROR,
     );
-    panic!("giuroll_loader.dll should not be loaded by SWRSToys");
+    panic!("giuroll_loader_dll.dll should not be loaded by SWRSToys");
 }
 
 #[no_mangle]
