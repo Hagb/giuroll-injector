@@ -85,3 +85,35 @@ pub unsafe extern "stdcall" fn DllMain(module: HINSTANCE, reason: DWORD, _: LPVO
     }
     1
 }
+
+unsafe fn load_by_swrstoys() {
+    MessageBoxA(
+        std::ptr::null_mut(),
+        CString::new("Error").unwrap().as_ptr(),
+        CString::new(
+            "giuroll_loader.dll should not be loaded by SWRSToys. Load giuroll.dll instead.",
+        )
+        .unwrap()
+        .as_ptr(),
+        MB_ICONERROR,
+    );
+    panic!("giuroll_loader.dll should not be loaded by SWRSToys");
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn Initialize(_module: HINSTANCE) -> bool {
+    load_by_swrstoys();
+    false
+}
+
+#[no_mangle]
+pub unsafe extern "cdecl" fn CheckVersion(_a: *const [u8; 16]) -> bool {
+    load_by_swrstoys();
+    false
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn getPriority() -> i32 {
+    load_by_swrstoys();
+    1000
+}
