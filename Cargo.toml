@@ -10,7 +10,7 @@ path = "src/giuroll_loader.rs"
 crate-type = ["cdylib"]
 
 [[bin]]
-name = "giuroll_injector"
+name = "giuroll_loader"
 path = "src/main.rs"
 
 [dependencies]
