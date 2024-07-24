@@ -1,37 +1,61 @@
 extern crate winapi;
 
-use std::env;
-use winapi::shared::minwindef::DWORD;
+use injection::open_process;
+use processes::find_process_id_by_name;
+use std::{env, thread, time::Duration};
 
 mod injection;
 mod processes;
 
-fn print_usage() {
-    println!("Usage:");
-    println!("1. List all processes: dll_injector.exe <list>");
-    println!("2. Get PID of a process by name: dll_injector.exe pid <process name>");
-    println!("3. Inject DLL into a process: dll_injector.exe <PID> <DLL path>");
-}
-
 fn main() {
-    let args: Vec<String> = env::args().collect();
+    'inject: {
+        let pid = match find_process_id_by_name("th123.exe") {
+            Some(pid) => pid,
+            None => {
+                eprintln!("Cannot find th123.exe");
+                break 'inject;
+            }
+        };
 
-    match args.len() {
-        2 if args[1] == "list" => processes::enumerate_processes(),
-        3 if args[1] == "pid" => {
-            if let Some(pid) = processes::find_process_id_by_name(&args[2]) {
-                println!("PID of {}: {}", args[2], pid);
-            } else {
-                println!("Process not found: {}", args[2]);
+        let process = match unsafe { open_process(pid) } {
+            Ok(h) => h,
+            Err(e) => {
+                eprintln!("Failed to open process: {}. Error: {}", pid, e);
+                break 'inject;
             }
-        }
-        3 if args[1].parse::<DWORD>().is_ok() => {
-            let pid = args[1].parse::<DWORD>().unwrap();
-            match injection::inject_dll(pid, &args[2]) {
-                Ok(_) => println!("Successfully injected DLL into process: {}", pid),
-                Err(e) => eprintln!("Failed to inject DLL into process: {}. Error: {}", pid, e),
+        };
+
+        let path = match env::current_dir() {
+            Ok(path) => path,
+            Err(e) => {
+                eprintln!("Failed to get current dir. Error: {}", e);
+                break 'inject;
             }
-        }
-        _ => print_usage(),
+        };
+
+        let path = path.join("giuroll_loader.dll");
+        let path = match path.to_str() {
+            Some(path) => path,
+            None => {
+                eprintln!(
+                    "Failed to get path string, for encoding issue. How can it even happen???"
+                );
+                break 'inject;
+            }
+        };
+
+        match unsafe { injection::inject_dll(process, path) } {
+            Ok(h) => h,
+            Err(e) => {
+                eprintln!("Failed to inject DLL into process: {}. Error: {}", pid, e);
+                break 'inject;
+            }
+        };
+        println!(
+            "Successfully injected giuroll_loader.dll into process: {}",
+            pid
+        );
     }
+    println!("The injector will exit 10 seconds later.");
+    thread::sleep(Duration::from_secs(10));
 }

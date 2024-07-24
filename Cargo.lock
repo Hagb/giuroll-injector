@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "dll_injector"
+name = "giuroll-injector"
 version = "0.1.0"
 dependencies = [
  "widestring",
