@@ -47,15 +47,15 @@ fn main() {
         match unsafe { injection::inject_dll(process, path) } {
             Ok(h) => h,
             Err(e) => {
-                eprintln!("Failed to inject DLL into process: {}. Error: {}", pid, e);
+                eprintln!("Failed to load DLL into process: {}. Error: {}", pid, e);
                 break 'inject;
             }
         };
         println!(
-            "Successfully injected giuroll_loader.dll into process: {}",
+            "Successfully loaded giuroll_loader.dll into process: {}",
             pid
         );
     }
-    println!("The injector will exit 10 seconds later.");
+    println!("The loader will exit 10 seconds later.");
     thread::sleep(Duration::from_secs(10));
 }
