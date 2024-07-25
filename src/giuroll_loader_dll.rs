@@ -1,7 +1,8 @@
-use std::ffi::{CStr, CString};
+use std::ffi::CString;
 use std::{os::windows::ffi::OsStringExt, path::Path, ptr::null_mut, thread};
 
 use winapi::shared::minwindef::FARPROC;
+use winapi::um::libloaderapi::FreeLibrary;
 use winapi::{
     shared::minwindef::{DWORD, HINSTANCE, LPVOID},
     um::{
@@ -83,6 +84,7 @@ pub unsafe extern "stdcall" fn DllMain(module: HINSTANCE, reason: DWORD, _: LPVO
                             .as_ptr(),
                         MB_ICONERROR,
                     );
+                    FreeLibrary(giuroll);
                 }
             });
         }
