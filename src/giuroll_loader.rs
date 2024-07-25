@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::{os::windows::ffi::OsStringExt, path::Path, ptr::null_mut, thread};
 
+use winapi::shared::minwindef::FARPROC;
 use winapi::{
     shared::minwindef::{DWORD, HINSTANCE, LPVOID},
     um::{
@@ -49,16 +50,20 @@ pub unsafe extern "stdcall" fn DllMain(module: HINSTANCE, reason: DWORD, _: LPVO
                     );
                     return;
                 }
-                let initialize = GetProcAddress(
+                let initialize = match GetProcAddress(
                     giuroll,
-                    CString::new("Initialize").unwrap().as_ptr() as *const i8,
-                );
+                    CString::new("InitializeByLoader").unwrap().as_ptr() as *const i8,
+                ) as usize
+                {
+                    0 => GetProcAddress(giuroll, CString::new("Initialize").unwrap().as_ptr()),
+                    x => x as FARPROC,
+                };
                 if initialize == std::ptr::null_mut() {
                     MessageBoxA(
                         std::ptr::null_mut(),
                         title.as_ptr(),
                         CString::new(format!(
-                            "Failed to get Initialize function of Giuroll. Error code {}",
+                            "Failed to get InitializeByLoader or Initialize function of Giuroll. Error code {}",
                             GetLastError()
                         ))
                         .unwrap()
