@@ -3,15 +3,11 @@
 A simple injector for [giuroll](https://github.com/Giufinn/giuroll) and [giuroll-hagb](https://github.com/hagb/giuroll-hagb), modified from [dll injector by @kimjongbing](https://github.com/kimjongbing/dll_injector), not detected as virus by Windows Defender.
 It applies Giuroll to Hisoutensoku without requiring `SWRSToys`, and works akin to the legacy `SokurollLoader.exe` used in older copies of the game.
 
-## Compilation
-1. Navigate to this directory in the command prompt
+## Build Commands
 ```
-cd <...>/giuroll/injector
-```
-
-2. Compile with
-```
-cargo +nightly-i686-pc-windows-msvc build --release
+rustup install nightly
+rustup +nightly component add rust-src
+cargo +nightly build --target i686-win7-windows-msvc -Z build-std
 ```
 
 ## Usage
